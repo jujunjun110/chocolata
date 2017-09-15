@@ -30,14 +30,11 @@ def alpha(file_name):
 
     img = cv2.imread(images_dir + file_name)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
-    b_channel, g_channel, r_channel = cv2.split(img)
-    alpha_channel = np.ones(b_channel.shape, dtype=b_channel.dtype) * 255
-    img_RGBA = cv2.merge((b_channel, g_channel, r_channel, alpha_channel))
-
     mask = cv2.inRange(hsv, lower_color, upper_color)
     inv_mask = cv2.bitwise_not(mask)
-    result = cv2.bitwise_and(img_RGBA, img_RGBA, mask=inv_mask)
+
+    b_channel, g_channel, r_channel = cv2.split(img)
+    result = cv2.merge((b_channel, g_channel, r_channel, inv_mask))
     return result
 
 def black(file_name):
@@ -53,7 +50,7 @@ def black(file_name):
 
 def fetch_color_range():
     # OpenCV HSV H:0-180, S:0-255, V:0-255
-    lower_color = np.array([50, 40, 30])
+    lower_color = np.array([50, 100, 70])
     upper_color = np.array([80, 255, 255])
     return lower_color, upper_color
 

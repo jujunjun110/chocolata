@@ -22,7 +22,7 @@ libx264:
 	$(MAKE) video CODEC=libx264 FMT=yuv420p
 
 rawvideo:
-	$(MAKE) video CODEC=rawvideo FMT=bgra
+	$(MAKE) video CODEC=prores_ks FMT=argb
 
 video:
 	ls ./movie_materials | xargs -IARG ffmpeg -framerate 30 -i chromakey/ARG_%05d.png -vcodec $(CODEC) -pix_fmt $(FMT) -r 30 ./movie_results/ARG
