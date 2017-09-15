@@ -3,6 +3,8 @@ import os
 import glob
 import cv2
 import numpy as np
+import functools
+import sys
 
 chromakey_dir = "./chromakey/"
 images_dir = "./images/"
@@ -14,15 +16,32 @@ def main():
 
     img_paths = glob.glob(images_dir + "*.png")
     file_names = [path.split('/')[-1] for path in img_paths]
-    map(save_chromakey_image, file_names)
+    f_name = sys.argv[1] if len(sys.argv) > 1 else 'alpha'
+    f = globals()[f_name]
+    map(functools.partial(save_chromakey_image, filter_func=f), file_names)
 
-
-def save_chromakey_image(file_name):
+def save_chromakey_image(file_name, filter_func):
     print file_name
+    result = filter_func(file_name)
+    cv2.imwrite(chromakey_dir + file_name, result)
 
-    # OpenCV HSV H:0-180, S:0-255, V:0-255
-    lower_color = np.array([50, 40, 30])
-    upper_color = np.array([80, 255, 255])
+def alpha(file_name):
+    lower_color, upper_color = fetch_color_range()
+
+    img = cv2.imread(images_dir + file_name)
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+    b_channel, g_channel, r_channel = cv2.split(img)
+    alpha_channel = np.ones(b_channel.shape, dtype=b_channel.dtype) * 255
+    img_RGBA = cv2.merge((b_channel, g_channel, r_channel, alpha_channel))
+
+    mask = cv2.inRange(hsv, lower_color, upper_color)
+    inv_mask = cv2.bitwise_not(mask)
+    result = cv2.bitwise_and(img_RGBA, img_RGBA, mask=inv_mask)
+    return result
+
+def black(file_name):
+    lower_color, upper_color = fetch_color_range()
 
     img = cv2.imread(images_dir + file_name)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -30,9 +49,13 @@ def save_chromakey_image(file_name):
     mask = cv2.inRange(hsv, lower_color, upper_color)
     inv_mask = cv2.bitwise_not(mask)
     result = cv2.bitwise_and(img, img, mask=inv_mask)
+    return result
 
-    cv2.imwrite(chromakey_dir + file_name, result)
-
+def fetch_color_range():
+    # OpenCV HSV H:0-180, S:0-255, V:0-255
+    lower_color = np.array([50, 40, 30])
+    upper_color = np.array([80, 255, 255])
+    return lower_color, upper_color
 
 if __name__ == '__main__':
     main()
