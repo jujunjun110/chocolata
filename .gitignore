@@ -1,3 +1,6 @@
 *.png
 *.mov
 *.mp4
+
+# virtualenv
+ENV/
