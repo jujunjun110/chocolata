@@ -5,5 +5,3 @@ install:
 		pip install -r requirements.txt; \
 		)
 
-activate:
-	source ./ENV/bin/activate
