@@ -2,5 +2,9 @@
 *.mov
 *.mp4
 
+images/
+chromakey/
+
+
 # virtualenv
 ENV/
